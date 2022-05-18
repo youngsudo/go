@@ -53,7 +53,12 @@ func Init() error {
 	viper.SetConfigName("config") // 配置文件名称(无扩展名)
 	viper.SetConfigType("yaml")   // 如果配置文件的名称中没有扩展名，则需要配置此项
 	// 查找配置文件所在的路径
-	viper.AddConfigPath("./") // 是相对于整个工程目录的路径
+	// 相对路径: 是相对于可执行文件的路径
+	// 绝对路径: 是相对于系统的根目录
+	viper.AddConfigPath("./")
+	// 基本上是配合配置中心使用的,告诉viper当前数据使用什么格式去解析
+	// viper.SetConfigType("JSON")
+	// viper.AutomaticEnv() // 自动读取环境变量
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {

@@ -4,6 +4,7 @@ import (
 	"app/dao/mysql"
 	"app/dao/redis"
 	"app/logger"
+	"app/logic"
 	"app/routes"
 	"app/settings"
 	"context"
@@ -51,15 +52,17 @@ func main() {
 	r := routes.Setup()
 
 	// 6. 启动服务,优雅关机
+	port := logic.FindPort(settings.Conf.App.Port)
+	fmt.Println("服务启动成功,端口号:", port)
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", settings.Conf.App.Port),
+		Addr:    fmt.Sprintf(":%d", port),
 		Handler: r,
 	}
 
 	go func() {
 		// 开启一个goroutine启动服务
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			zap.L().Warn("ListenAndServe", zap.Error(err))
+			zap.L().Fatal("ListenAndServe", zap.Error(err))
 		}
 	}()
 
