@@ -14,7 +14,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -22,26 +21,28 @@ func main() {
 
 	// 1. 加载配置文件
 	if err := settings.Init(); err != nil {
-		panic(err)
+		fmt.Printf("加载配置文件失败,err: %v\n", err)
+		os.Exit(1)
 	}
 
 	// 2. 初始化日志
-	if err := logger.Init(); err != nil {
-		panic(err)
+	if err := logger.Init(settings.Conf.LogConfig); err != nil {
+		fmt.Printf("初始化日志库错误,err :%v\n", err)
+		os.Exit(1)
 	}
 	zap.L().Debug("初始化日志完成")
 	zap.L().Sync() // 将日志写入磁盘
 
 	// 3. 初始化 MySQL 数据库
-	if err := mysql.Init(); err != nil {
-		panic(err)
+	if err := mysql.Init(settings.Conf.MysqlConfig); err != nil {
+		zap.L().Fatal("初始化 MySQL 失败", zap.Error(err))
 	}
 	zap.L().Debug("初始化 MySQL 完成")
 	defer mysql.Close()
 
 	// 4. 初始化Redis连接
-	if err := redis.Init(); err != nil {
-		panic(err)
+	if err := redis.Init(settings.Conf.RedisConfig); err != nil {
+		zap.L().Fatal("初始化Redis失败", zap.Error(err))
 	}
 	zap.L().Debug("初始化 Redis 完成")
 	defer redis.Close()
@@ -51,7 +52,7 @@ func main() {
 
 	// 6. 启动服务,优雅关机
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", viper.GetInt("server.port")),
+		Addr:    fmt.Sprintf(":%d", settings.Conf.App.Port),
 		Handler: r,
 	}
 

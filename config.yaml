@@ -1,4 +1,4 @@
-server:
+app:
   name: "web_app"
   mode: "dev"
   port: 8080
@@ -15,7 +15,7 @@ mysql:
   port: 3306
   user: "root"
   password: "123456"
-  dbName: "app_demo"
+  database: "app_demo"
   maxOpenConns: 200
   maxIdleConns: 50
 
