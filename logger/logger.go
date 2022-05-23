@@ -17,7 +17,7 @@ import (
 )
 
 // Init 初始化Logger
-func Init(cfg *settings.LogConfig) (err error) {
+func Init(cfg *settings.LogConfig, mode string) (err error) {
 	writeSyncer := getLogWriter(
 		cfg.Filename,
 		cfg.MaxSize,
@@ -30,8 +30,19 @@ func Init(cfg *settings.LogConfig) (err error) {
 	if err != nil {
 		return
 	}
-	core := zapcore.NewCore(encoder, writeSyncer, l)
+	var core zapcore.Core
+	if mode == "dev" || mode == gin.DebugMode {
+		// core = zapcore.NewCore(encoder, writeSyncer, zapcore.DebugLevel)
+		// 开发模式,日志输出到控制台,日志级别为debug
+		consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
+		core = zapcore.NewTee(
+			zapcore.NewCore(encoder, writeSyncer, l),
+			zapcore.NewCore(consoleEncoder, zapcore.Lock(os.Stdout), zap.DebugLevel),
+		)
 
+	} else {
+		core = zapcore.NewCore(encoder, writeSyncer, l)
+	}
 	lg := zap.New(core, zap.AddCaller())
 	// 替换zap包中全局的logger实例，后续在其他包中只需使用zap.L()调用即可
 	zap.ReplaceGlobals(lg)
@@ -55,7 +66,8 @@ func getEncoder() zapcore.Encoder {
 		EncodeCaller:   zapcore.ShortCallerEncoder,     // 短路径编码调用者
 	}
 
-	return zapcore.NewConsoleEncoder(encoderConfig)
+	// return zapcore.NewConsoleEncoder(encoderConfig)
+	return zapcore.NewJSONEncoder(encoderConfig)
 }
 
 func getLogWriter(filename string, maxSize, maxBackup, maxAge int) zapcore.WriteSyncer {

@@ -15,7 +15,7 @@ mysql:
   port: 3306
   user: "root"
   password: "123456"
-  database: "app_demo"
+  database: "keyshare"
   maxOpenConns: 200
   maxIdleConns: 50
 

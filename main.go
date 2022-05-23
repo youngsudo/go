@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// 2. 初始化日志
-	if err := logger.Init(settings.Conf.LogConfig); err != nil {
+	if err := logger.Init(settings.Conf.LogConfig, settings.Conf.App.Mode); err != nil {
 		fmt.Printf("初始化日志库错误,err :%v\n", err)
 		os.Exit(1)
 	}
@@ -49,7 +49,7 @@ func main() {
 	defer redis.Close()
 
 	// 5. 注册路由
-	r := routes.Setup()
+	r := routes.Setup(settings.Conf.App.Mode)
 
 	// 6. 启动服务,优雅关机
 	port := logic.FindPort(settings.Conf.App.Port)
